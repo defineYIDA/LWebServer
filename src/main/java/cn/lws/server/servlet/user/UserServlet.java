@@ -20,7 +20,7 @@ public class UserServlet extends HTTPServlet {
         }else{
             //必须使用从浏览器角度看的路径，凡是静态资源，前面都没有/static or /views
             //但是forward是从服务器角度看的路径，是真实的、相对的路径
-            response.sendRedirect("http://localhost:8000/login.html");
+            response.sendRedirect("http://localhost:8080/login.html");
         }
     }
 }
