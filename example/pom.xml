@@ -82,7 +82,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>com.lws.example.Main</mainClass>
+                            <mainClass>com.lws.lwebserver.example.Main</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
