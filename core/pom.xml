@@ -38,10 +38,10 @@
             <version>${slf4j.version}</version>
             <scope>provided</scope>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/eu.medsea.mimeutil/mime-cn.lws.server.util -->
+        <!-- https://mvnrepository.com/artifact/eu.medsea.mimeutil/mime-com.lws.lwebserver.core.util -->
         <dependency>
             <groupId>eu.medsea.mimeutil</groupId>
-            <artifactId>mime-cn.lws.server.util</artifactId>
+            <artifactId>mime-com.lws.lwebserver.core.util</artifactId>
             <version>2.1.3</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/dom4j/dom4j -->

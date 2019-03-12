@@ -3,15 +3,15 @@
     
     <servlet>
         <servlet-name>LoginServlet</servlet-name>
-        <servlet-class>cn.lws.server.servlet.user.LoginServlet</servlet-class>
+        <servlet-class>com.lws.lwebserver.core.servlet.user.LoginServlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>LogoutServlet</servlet-name>
-        <servlet-class>cn.lws.server.servlet.user.LogoutServlet</servlet-class>
+        <servlet-class>com.lws.lwebserver.core.servlet.user.LogoutServlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>UserServlet</servlet-name>
-        <servlet-class>cn.lws.server.servlet.user.UserServlet</servlet-class>
+        <servlet-class>com.lws.lwebserver.core.servlet.user.UserServlet</servlet-class>
     </servlet>
     
 
