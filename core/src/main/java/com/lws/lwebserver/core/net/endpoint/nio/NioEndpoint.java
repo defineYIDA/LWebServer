@@ -27,7 +27,20 @@ public class NioEndpoint extends AbstractEndpoint {
 
     @Override
     public void close() {
-
+        running=false;
+        for (Poller nioPoller : nioPollers) {
+            try {
+                nioPoller.destroy();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        //nioDispatcher.shutdown();
+        try {
+            serverSocket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -47,8 +60,7 @@ public class NioEndpoint extends AbstractEndpoint {
             //注意监听serversocketchannel为阻塞，客户机连接为非阻塞
             socket.configureBlocking(false);
             //TODO SecureNioChannel SSL 对buffer进行加密
-            getPoller().register();
-
+            getPoller().register(socket,true);//注册到pollerevent
         }catch (IOException e){
             e.printStackTrace();
             return false;
@@ -80,7 +92,7 @@ public class NioEndpoint extends AbstractEndpoint {
     private void initPoller() throws IOException {
         nioPollers = new Poller[pollerThreadCount];
         for (int i = 0; i < pollerThreadCount; i++) {
-            nioPollers[i] = new Poller();
+            nioPollers[i] = new Poller();//TODO -----------------------------------------------------------------------------------------------------------
             Thread pollerThread = new Thread(nioPollers[i],  "LWS-ClientPoller-"+i);
             pollerThread.setPriority(Thread.NORM_PRIORITY);//设置优先级
             pollerThread.setDaemon(true);
