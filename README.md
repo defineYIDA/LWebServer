@@ -1,4 +1,5 @@
 # 通过搭建简单HTTP服务器，学习服务器原理
+
 ## 学习内容：
 - IO模式
 - Socket
@@ -27,3 +28,6 @@
 - SSL
 - limtlatch
 - APR
+## 模式
+- 当前NIO的实现参照的是Tomcat的源码
+
