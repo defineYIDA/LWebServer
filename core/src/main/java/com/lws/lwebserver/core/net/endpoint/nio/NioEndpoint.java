@@ -1,6 +1,7 @@
 package com.lws.lwebserver.core.net.endpoint.nio;
 
 import com.lws.lwebserver.core.net.endpoint.AbstractEndpoint;
+import com.lws.lwebserver.core.net.wrapper.nio.NioSocketWrapper;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -165,5 +166,12 @@ public class NioEndpoint extends AbstractEndpoint {
         }
     }
 
+    /**
+     *
+     * @param socketWrapper
+     */
+    public void execute(NioSocketWrapper socketWrapper) {
+
+    }
 
 }

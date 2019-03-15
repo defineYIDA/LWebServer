@@ -6,10 +6,7 @@ import com.lws.lwebserver.core.util.SynchronizedQueue;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
-import java.nio.channels.ClosedChannelException;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
-import java.nio.channels.SocketChannel;
+import java.nio.channels.*;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -78,6 +75,7 @@ public class Poller implements Runnable {
             boolean hasEvents=false;
             try {
                 if(!close){// 未关闭
+                    events();
                     if(wakeupCounter.getAndSet(-1)>0){
                         //代表此时events存在未注册的值，立即返回(执行一个non blocking select)
                         keyCount = selector.selectNow();
@@ -113,12 +111,53 @@ public class Poller implements Runnable {
                     iterator.remove();
                 }else {
                     iterator.remove();
-                    //交由processKey-->processSocket-->execute-->doDispatch调度相应的servlet
+
+                    /**粗略概况一下接下来的流程(Tomcat源码的流程，但是接下来我采用的是简化的流程)
+                     *
+                     *  |__交由processKey(SelectionKey sk, NioSocketWrapper attachment),判断endponit,attachment的各种状态，判断出对socket的操作SocketEvent，
+                     *  这里还有对数据拷贝优化系统调用sendfile的支持；
+                     *      |__processSocket(),创建处理的线程SocketProcess，放入线程池并且触发线程；
+                     *          |__SocketProcessor.run,判断是否是SSL/TLS的请求: |___1) No TLS handshaking required. Let the handler process this socket / event combination.
+                     *                                                                                         |___2) Unable to complete the TLS handshake. Treat it as if the handshake failed.
+                     *                                                                                         |___3) The handshake process reads/writes from/to the socket. status may therefore be OPEN_WRITE once the handshake completes.
+                     *                                                                                         However, the handshake happens when the socket is opened so the status must always be OPEN_READ after it completes.
+                     *                                                                                         It is OK to always set this as it is only used if the handshake completes.
+                     *                 上面状态1）请求不是TLS握手，则正常由Handler.process处理。
+                     *                 |__ process,针对不同协议做相应的一系列处理(还包括对keep-alive的处理)(这里头皮发麻_(:з)∠)_)
+                     *                      wrapper.registerReadInterest();//此方法对socket再次注册到poller中
+                     *
+                     */
+                    processKey(sk, attachment);
                 }
             }
         }
     }
 
+    /**
+     * 返回可处理的key
+     * @param sk
+     * @param attachment
+     */
+    protected void processKey(SelectionKey sk, NioSocketWrapper attachment){
+        try {
+            if(close){
+                cancelledKey(sk);
+            }else if(sk.isValid() && attachment != null ){
+                processSocket(attachment);
+            }else {
+                cancelledKey(sk);
+            }
+        }catch (CancelledKeyException c){
+            cancelledKey(sk);
+        }catch (Throwable t){
+            log.error("",t);
+        }
+    }
+    private void processSocket(NioSocketWrapper attachment) {
+        attachment.setWorking(true);
+        //交由Excutor线程池处理
+        endpoint.execute(attachment);
+    }
     /**
      * 注册到PollerEvent
      * @param socketChannel
@@ -166,6 +205,39 @@ public class Poller implements Runnable {
             //TODO 这里tomcat里做了个缓存操作 eventCache
         }
         return result;
+    }
+
+    public NioSocketWrapper cancelledKey(SelectionKey key) {
+        NioSocketWrapper ka=null;
+        try {
+            if(null==key){
+                return null;
+            }
+            ka=(NioSocketWrapper) key.attach(null);
+/*            if(null!=ka){
+
+            }*/
+            if(key.isValid()){
+                key.cancel();
+            }
+            if(null!=ka){
+                try {
+                    ka.getSocket().close();
+                }catch (Exception e){
+                    log.info("endpoint.debug.socketCloseFail"+e);
+                }
+            }
+            if(key.channel().isOpen()){
+                try {
+                    key.channel().close();
+                }catch (Exception e){
+                    log.info("endpoint.debug.channelCloseFail"+e);
+                }
+            }
+        }catch (Throwable e){
+            if (log.isDebugEnabled()) log.error("",e);
+        }
+        return ka;
     }
     //-----------------------------------------------------PollerEvent start
     /**

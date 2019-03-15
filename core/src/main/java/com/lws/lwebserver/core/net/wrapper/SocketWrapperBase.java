@@ -21,4 +21,9 @@ public abstract class SocketWrapperBase<E> {
 
 
     public abstract void close() throws IOException;
+
+    public E getSocket() {
+        return socket;
+    }
 }
+
