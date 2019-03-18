@@ -22,7 +22,6 @@
 
 ## 准备添加的功能：
 - NIO实现多路复用
-- 手写WebSocket服务器，实现HTTP长连接
 - Filter
 - Listener
 - SSL
