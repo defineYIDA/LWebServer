@@ -32,9 +32,6 @@ public class NioSocketWrapper extends SocketWrapperBase<SocketChannel> {
         this.poller=poller;
         isWorking=false;
     }
-    public SocketChannel getSocketChannel(){
-        return this.socket;
-    }
 
     @Override
     public void close() throws IOException {
@@ -42,4 +39,13 @@ public class NioSocketWrapper extends SocketWrapperBase<SocketChannel> {
         socket.close();
     }
 
+    @Override
+    public boolean isClosed() {
+        return !getSocket().isOpen();
+    }
+
+    @Override
+    public SocketChannel getSocket() {
+        return super.getSocket();
+    }
 }

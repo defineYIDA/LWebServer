@@ -25,5 +25,6 @@ public abstract class SocketWrapperBase<E> {
     public E getSocket() {
         return socket;
     }
+    public abstract boolean isClosed();
 }
 

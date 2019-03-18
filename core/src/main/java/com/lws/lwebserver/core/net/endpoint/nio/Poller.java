@@ -143,7 +143,13 @@ public class Poller implements Runnable {
             if(close){
                 cancelledKey(sk);
             }else if(sk.isValid() && attachment != null ){
-                processSocket(attachment);
+                boolean closeSocket=false;
+                if(!endpoint.processSocket(attachment)){
+                    closeSocket=true;
+                }
+                if(closeSocket){
+                    cancelledKey(sk);
+                }
             }else {
                 cancelledKey(sk);
             }
@@ -153,11 +159,7 @@ public class Poller implements Runnable {
             log.error("",t);
         }
     }
-    private void processSocket(NioSocketWrapper attachment) {
-        attachment.setWorking(true);
-        //交由Excutor线程池处理
-        endpoint.execute(attachment);
-    }
+
     /**
      * 注册到PollerEvent
      * @param socketChannel
@@ -265,7 +267,7 @@ public class Poller implements Runnable {
         public void run() {
             log.info("将SocketChannel的读事件注册到Poller的selector中");
             try {
-                if (socketWrapper.getSocketChannel().isOpen()) {
+                if (socketWrapper.getSocket().isOpen()) {
                     /**注册并且标记当前服务的通道状态
                      * register(Selector,int)
                      * int---状态编码
@@ -274,9 +276,9 @@ public class Poller implements Runnable {
                      *     OP_CONNECT： 连接建立后的标记
                      *     OP_ACCEPT： 连接成功的标记位
                      */
-                    socketWrapper.getSocketChannel().register(socketWrapper.getPoller().getSelector(), SelectionKey.OP_READ, socketWrapper);
+                    socketWrapper.getSocket().register(socketWrapper.getPoller().getSelector(), SelectionKey.OP_READ, socketWrapper);
                 } else {
-                    log.error("socket已经被关闭，无法注册到Poller", socketWrapper.getSocketChannel());
+                    log.error("socket已经被关闭，无法注册到Poller", socketWrapper.getSocket());
                 }
             } catch (ClosedChannelException e) {
                 e.printStackTrace();

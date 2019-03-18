@@ -1,11 +1,12 @@
-package com.lws.lwebserver.core.model;
+package com.lws.lwebserver.core.cookie;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Created by zl on 2019/03/01.
+ * @Author: zl
+ * @Date: 2019/3/16 11:52
  */
 @Data
 @NoArgsConstructor

@@ -4,8 +4,9 @@ import com.lws.lwebserver.core.exception.base.ServletException;
 import com.lws.lwebserver.core.request.Request;
 import com.lws.lwebserver.core.response.Response;
 import com.lws.lwebserver.core.servlet.impl.HttpServlet;
-import com.lws.lwebserver.sample.domain.User;
-import com.lws.lwebserver.sample.service.UserService;
+
+import com.lws.lwebserver.example.model.User;
+import com.lws.lwebserver.example.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;

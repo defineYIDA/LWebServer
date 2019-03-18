@@ -1,19 +1,31 @@
-package com.lws.lwebserver.core.servlet.base;
+package com.lws.lwebserver.core.servlet.impl;
 
 import com.lws.lwebserver.core.enumeration.RequestMethod;
 import com.lws.lwebserver.core.exception.base.ServletException;
 import com.lws.lwebserver.core.request.Request;
 import com.lws.lwebserver.core.response.Response;
+import com.lws.lwebserver.core.servlet.Servlet;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 
 /**
- * Created by zl on 2019/03/01
- *
+ * @Author: zl
+ * @Date: 2019/3/16 16:26
  */
 @Slf4j
-public abstract class HTTPServlet {
+public abstract class HttpServlet implements Servlet {
+
+    @Override
+    public void init() {
+
+    }
+
+    @Override
+    public void destroy() {
+
+    }
+
     public void service(Request request, Response response) throws ServletException, IOException {
         if (request.getMethod() == RequestMethod.GET) {
             doGet(request, response);

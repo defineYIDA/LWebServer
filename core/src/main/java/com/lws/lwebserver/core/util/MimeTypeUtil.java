@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collection;
 
-import static com.lws.lwebserver.core.constant.Context.DEFAULT_CONTENT_TYPE;
+import static com.lws.lwebserver.core.constant.Const.DEFAULT_CONTENT_TYPE;
 
 /**
  * Created by zl on 2019/03/01.

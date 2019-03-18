@@ -2,9 +2,7 @@ package com.lws.lwebserver.core.util;
 
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -16,23 +14,25 @@ import java.nio.channels.FileChannel;
 public class IOUtil {
 
     public static byte[] getBytesFromFile(String fileName) throws IOException {
-        URL url = IOUtil.class.getResource(fileName);
-        if (url == null) {
-            log.info("file:{}",fileName);
+        InputStream in = IOUtil.class.getResourceAsStream(fileName);
+        if (in == null) {
+            log.info("Not Found File:{}",fileName);
             throw new FileNotFoundException();
         }
-        log.info("正在读取文件:{}",url.getFile());
-        return getBytesFromStream(new FileInputStream(url.getFile()));
+        log.info("正在读取文件:{}",fileName);
+        return getBytesFromStream(in);
     }
 
-    public static byte[] getBytesFromStream(FileInputStream in) throws IOException {
-        FileChannel channel = in.getChannel();
-        ByteBuffer buf = ByteBuffer.allocate((int) channel.size());
-        channel.read(buf);
-        channel.close();
+    public static byte[] getBytesFromStream(InputStream in) throws IOException {
+        ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+        byte[] buffer = new byte[1024];
+        int len = -1;
+        while((len = in.read(buffer)) != -1){
+            outStream.write(buffer, 0, len);
+        }
+        outStream.close();
         in.close();
-        return buf.array();
+        return outStream.toByteArray();
     }
 
-   
 }

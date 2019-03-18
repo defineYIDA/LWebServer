@@ -1,6 +1,6 @@
 package com.lws.lwebserver.core.exception.base;
 
-import com.lws.lwebserver.core.enumeration.HTTPStatus;
+import com.lws.lwebserver.core.enumeration.HttpStatus;
 import lombok.Getter;
 
 /**
@@ -8,8 +8,8 @@ import lombok.Getter;
  */
 @Getter
 public class ServletException extends Exception {
-    private HTTPStatus status;
-    public ServletException(HTTPStatus status){
+    private HttpStatus status;
+    public ServletException(HttpStatus status){
         this.status = status;
     }
 }

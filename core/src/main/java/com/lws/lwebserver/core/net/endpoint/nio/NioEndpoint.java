@@ -1,10 +1,15 @@
 package com.lws.lwebserver.core.net.endpoint.nio;
 
+import com.lws.lwebserver.core.net.base.SocketProcessorBase;
+import com.lws.lwebserver.core.net.dispatcher.AbstractDispatcher;
+import com.lws.lwebserver.core.net.dispatcher.nio.NioDispatcher;
 import com.lws.lwebserver.core.net.endpoint.AbstractEndpoint;
+import com.lws.lwebserver.core.net.wrapper.SocketWrapperBase;
 import com.lws.lwebserver.core.net.wrapper.nio.NioSocketWrapper;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 
@@ -15,15 +20,25 @@ import java.util.concurrent.atomic.AtomicInteger;
  * nio 模式切入点
  */
 @Slf4j
-public class NioEndpoint extends AbstractEndpoint {
+public class NioEndpoint extends AbstractEndpoint<NioSocketWrapper> {
 
     private ServerSocketChannel serverSocket;//服务通道
 
-
     @Override
     public void start(int port) {
-        running=true;//run endpoint
-
+        try {
+            running=true;//run endpoint
+            paused=false;
+            initDispatcher();
+            initServerSocket(port);
+            initPoller();
+            startAcceptorThreads();
+            //TODO 初始化acceptor，dispatcher,计时任务
+        }catch (Exception e){
+            e.printStackTrace();
+            log.info("初始化服务器失败");
+            close();
+        }
     }
 
     @Override
@@ -36,7 +51,7 @@ public class NioEndpoint extends AbstractEndpoint {
                 e.printStackTrace();
             }
         }
-        //nioDispatcher.shutdown();
+        dispatcher.shutdown();
         try {
             serverSocket.close();
         } catch (IOException e) {
@@ -44,9 +59,14 @@ public class NioEndpoint extends AbstractEndpoint {
         }
     }
 
+    private void initServerSocket(int port) throws IOException {
+        serverSocket = ServerSocketChannel.open();//开启服务通道
+        serverSocket.bind(new InetSocketAddress(port));//绑定端口号，使用到InetSocketAddress对象
+        serverSocket.configureBlocking(true);//阻塞型io
+    }
     @Override
-    protected Acceptor createAcceptor() {
-        return new Acceptor();
+    protected void initDispatcher() {
+        dispatcher=new NioDispatcher();
     }
 
     /**
@@ -67,6 +87,39 @@ public class NioEndpoint extends AbstractEndpoint {
             return false;
         }
         return true;
+    }
+    /**
+     * 关闭通道
+     * @param socket
+     */
+    private void closeSocket(SocketChannel socket) {
+        try {
+            socket.socket().close();
+        } catch (IOException ioe)  {
+            if (log.isDebugEnabled()) {
+                log.error("endpoint.err.close");
+            }
+        }
+        try {
+            socket.close();
+        } catch (IOException ioe) {
+            if (log.isDebugEnabled()) {
+                log.error("endpoint.err.close");
+            }
+        }
+    }
+
+    /**
+     *
+     * @param socketWrapper
+     */
+    public void execute(NioSocketWrapper socketWrapper) {
+        //TODO
+    }
+
+    @Override
+    protected SocketProcessorBase<NioSocketWrapper> createSocketProcessor(SocketWrapperBase<NioSocketWrapper> socketWrapper) {
+        return new SocketProcessor(socketWrapper);
     }
 
     //-----------------------------------------------------Poller start
@@ -93,7 +146,8 @@ public class NioEndpoint extends AbstractEndpoint {
     private void initPoller() throws IOException {
         nioPollers = new Poller[pollerThreadCount];
         for (int i = 0; i < pollerThreadCount; i++) {
-            nioPollers[i] = new Poller();//TODO -----------------------------------------------------------------------------------------------------------
+            String pollName="NIOPoller-"+i;
+            nioPollers[i] = new Poller(this,pollName);
             Thread pollerThread = new Thread(nioPollers[i],  "LWS-ClientPoller-"+i);
             pollerThread.setPriority(Thread.NORM_PRIORITY);//设置优先级
             pollerThread.setDaemon(true);
@@ -103,6 +157,10 @@ public class NioEndpoint extends AbstractEndpoint {
     //-----------------------------------------------------Poller end
 
     //-----------------------------------------------------acceptor start
+    @Override
+    protected Acceptor createAcceptor() {
+        return new Acceptor();
+    }
     /**
      * 后台线程监听客户机的TCP连接
      */
@@ -145,33 +203,24 @@ public class NioEndpoint extends AbstractEndpoint {
         }
     }
     //-----------------------------------------------------acceptor end
-    /**
-     * 关闭通道
-     * @param socket
-     */
-    private void closeSocket(SocketChannel socket) {
-        try {
-            socket.socket().close();
-        } catch (IOException ioe)  {
-            if (log.isDebugEnabled()) {
-                log.error("endpoint.err.close");
-            }
+
+    //-----------------------------------------------------SocketProcessor start
+    protected class SocketProcessor extends SocketProcessorBase<NioSocketWrapper> {
+        public SocketProcessor(SocketWrapperBase<NioSocketWrapper> socketWrapper) {
+            super(socketWrapper);
         }
-        try {
-            socket.close();
-        } catch (IOException ioe) {
-            if (log.isDebugEnabled()) {
-                log.error("endpoint.err.close");
-            }
+
+        @Override
+        public void reset(SocketWrapperBase<NioSocketWrapper> socketWrapper) {
+            super.reset(socketWrapper);
+        }
+
+        @Override
+        protected void doRun() {
+            //TODO
         }
     }
+    //-----------------------------------------------------SocketProcessor end
 
-    /**
-     *
-     * @param socketWrapper
-     */
-    public void execute(NioSocketWrapper socketWrapper) {
-
-    }
 
 }
