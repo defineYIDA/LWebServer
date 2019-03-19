@@ -33,6 +33,7 @@ public abstract class AbstractDispatcher {
                 return new Thread(r, "Worker Pool-" + count++);
             }
         };
+
         //TODO 线程池的设置对不对？
         this.pool = new ThreadPoolExecutor(100, 100, 1,
                 TimeUnit.SECONDS,

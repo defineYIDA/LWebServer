@@ -127,6 +127,7 @@ public abstract class AbstractEndpoint<S> {
             t.start();
         }
     }
+
     /**
      *acceptor基类
      */
@@ -135,7 +136,6 @@ public abstract class AbstractEndpoint<S> {
         public enum AcceptorState {
             NEW, RUNNING, PAUSED, ENDED
         }
-
         protected volatile AcceptorState state = AcceptorState.NEW;
 
         public final AcceptorState getState() {

@@ -167,6 +167,7 @@ public class NioEndpoint extends AbstractEndpoint<NioSocketWrapper> {
     protected class Acceptor extends AbstractEndpoint.Acceptor{
         @Override
         public void run() {
+            log.info("NIO Acceptor 开始监听");
             while (running){
                 //endpoint阻塞
                 while (paused && running) {
