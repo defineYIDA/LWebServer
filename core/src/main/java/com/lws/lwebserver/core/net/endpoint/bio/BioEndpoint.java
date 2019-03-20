@@ -12,14 +12,14 @@ import java.net.ServerSocket;
 import java.net.Socket;
 @Slf4j
 public class BioEndpoint extends AbstractEndpoint<BioSocketWrapper> {
-    private ServerSocket server;//主socket
+    private ServerSocket serverSocket;//主socket
     private volatile boolean isRunning = true;
 
     @Override
     public void start(int port) {
         try {
             initDispatcher();//初始化调度者
-            server = new ServerSocket(port);
+            serverSocket = new ServerSocket(port);
             startAcceptorThreads();//开始监听
             log.info("服务器启动");
         } catch (Exception e) {
@@ -35,14 +35,14 @@ public class BioEndpoint extends AbstractEndpoint<BioSocketWrapper> {
         isRunning = false;
         dispatcher.shutdown();
         try {
-            server.close();
+            serverSocket.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     public Socket accept() throws IOException {
-        return server.accept();
+        return serverSocket.accept();
     }
 
     public boolean isRunning() {
@@ -55,13 +55,22 @@ public class BioEndpoint extends AbstractEndpoint<BioSocketWrapper> {
     }
 
     @Override
-    public boolean processSocket(SocketWrapperBase socketWrapper) {
-        return super.processSocket(socketWrapper);
-    }
-
-    @Override
     protected SocketProcessorBase<BioSocketWrapper> createSocketProcessor(SocketWrapperBase<BioSocketWrapper> socketWrapper) {
+        //TODO
         return null;
+    }
+    /**
+     * 包装socket，并处理
+     * @param socket
+     * @return
+     */
+    protected boolean setSocketOptions(Socket socket) {
+        try {
+            return processSocket(new BioSocketWrapper(socket,this));
+        }catch (Exception e){
+            log.error("处理clientSocket错误："+e);
+            return false;
+        }
     }
     //-----------------------------------------------------acceptor start
 
@@ -69,6 +78,7 @@ public class BioEndpoint extends AbstractEndpoint<BioSocketWrapper> {
     protected Acceptor createAcceptor() {
         return new Acceptor();
     }
+
     /**
      * 后台线程监听客户机的TCP连接
      */
@@ -89,16 +99,40 @@ public class BioEndpoint extends AbstractEndpoint<BioSocketWrapper> {
                     break;
                 }
                 state=AcceptorState.RUNNING;
-                Socket client=null;
+                Socket clientSocket=null;
                 try {
+                    //调用阻塞
+                    clientSocket=serverSocket.accept();
+                }catch (IOException e){
+                    e.printStackTrace();
+                }
+                if(null==clientSocket){
+                    continue;
+                }
+                if(running&&!paused){
+                    if(!setSocketOptions(clientSocket)){
+                        try {
+                            clientSocket.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }else {
+                    try {
+                        clientSocket.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                /*try {
                     //TCP的短连接，请求处理完即关闭
-                    client = server.accept();
+                    client = serverSocket.accept();
                     log.info("client:{}", client);
-
+                    processSocket(new BioSocketWrapper(client,));
                     //TODO 调度
                 } catch (IOException e) {
                     e.printStackTrace();
-                }
+                }*/
             }
         }
     }

@@ -7,6 +7,7 @@ import com.lws.lwebserver.core.net.wrapper.SocketWrapperBase;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
 
+import java.net.Socket;
 import java.util.concurrent.Executor;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -17,7 +18,7 @@ import java.util.concurrent.TimeUnit;
  * @author zl
  */
 @Slf4j
-public abstract class AbstractEndpoint<S> {
+public abstract class AbstractEndpoint<S extends SocketWrapperBase> {
 
     /**
      * endpoint run status
@@ -127,7 +128,6 @@ public abstract class AbstractEndpoint<S> {
             t.start();
         }
     }
-
     /**
      *acceptor基类
      */
@@ -158,7 +158,7 @@ public abstract class AbstractEndpoint<S> {
      * @param socketWrapper
      * @return
      */
-    public boolean processSocket(SocketWrapperBase socketWrapper){
+    public boolean processSocket(S socketWrapper){
         try {
             if(socketWrapper==null){
                 return false;
