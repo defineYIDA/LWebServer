@@ -4,7 +4,7 @@ import com.lws.lwebserver.core.context.holder.FilterHolder;
 import com.lws.lwebserver.core.context.holder.ServletHolder;
 import com.lws.lwebserver.core.cookie.Cookie;
 import com.lws.lwebserver.core.exception.ServletNotFoundException;
-import com.lws.lwebserver.core.exception.handler.FilterNotFoundException;
+import com.lws.lwebserver.core.exception.FilterNotFoundException;
 import com.lws.lwebserver.core.fliter.Filter;
 import com.lws.lwebserver.core.listener.HttpSessionListener;
 import com.lws.lwebserver.core.listener.ServletContextListener;

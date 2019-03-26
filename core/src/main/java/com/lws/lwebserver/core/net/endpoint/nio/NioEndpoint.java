@@ -32,7 +32,7 @@ public class NioEndpoint extends AbstractEndpoint<NioSocketWrapper> {
             initDispatcher();
             initServerSocket(port);
             initPoller();
-            startAcceptorThreads();
+            startAcceptorThreads("NIO-Acceptor");
             //TODO 初始化acceptor，dispatcher,计时任务
         }catch (Exception e){
             e.printStackTrace();

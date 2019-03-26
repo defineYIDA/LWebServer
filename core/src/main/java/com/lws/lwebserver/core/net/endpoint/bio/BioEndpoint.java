@@ -13,14 +13,15 @@ import java.net.Socket;
 @Slf4j
 public class BioEndpoint extends AbstractEndpoint<BioSocketWrapper> {
     private ServerSocket serverSocket;//主socket
-    private volatile boolean isRunning = true;
 
     @Override
     public void start(int port) {
         try {
+            running=true;
+            paused=false;
             initDispatcher();//初始化调度者
             serverSocket = new ServerSocket(port);
-            startAcceptorThreads();//开始监听
+            startAcceptorThreads("BIO-Acceptor");//开始监听
             log.info("服务器启动");
         } catch (Exception e) {
             e.printStackTrace();
@@ -32,21 +33,13 @@ public class BioEndpoint extends AbstractEndpoint<BioSocketWrapper> {
 
     @Override
     public void close() {
-        isRunning = false;
+        running = false;
         dispatcher.shutdown();
         try {
             serverSocket.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    public Socket accept() throws IOException {
-        return serverSocket.accept();
-    }
-
-    public boolean isRunning() {
-        return isRunning;
     }
 
     @Override

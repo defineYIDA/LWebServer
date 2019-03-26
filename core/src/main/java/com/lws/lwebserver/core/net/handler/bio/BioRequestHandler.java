@@ -4,7 +4,7 @@ import com.lws.lwebserver.core.context.ServletContext;
 import com.lws.lwebserver.core.context.WebApplication;
 import com.lws.lwebserver.core.exception.ServletNotFoundException;
 import com.lws.lwebserver.core.exception.handler.ExceptionHandler;
-import com.lws.lwebserver.core.exception.handler.FilterNotFoundException;
+import com.lws.lwebserver.core.exception.FilterNotFoundException;
 import com.lws.lwebserver.core.net.handler.AbstractRequestHandler;
 import com.lws.lwebserver.core.net.wrapper.SocketWrapperBase;
 import com.lws.lwebserver.core.net.wrapper.bio.BioSocketWrapper;

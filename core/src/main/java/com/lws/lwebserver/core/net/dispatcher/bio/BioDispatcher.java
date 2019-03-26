@@ -8,15 +8,18 @@ import com.lws.lwebserver.core.net.wrapper.SocketWrapperBase;
 import com.lws.lwebserver.core.net.wrapper.bio.BioSocketWrapper;
 import com.lws.lwebserver.core.request.Request;
 import com.lws.lwebserver.core.response.Response;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.Socket;
 
 /**
  * @Author: zl
  * @Date: 2019/3/20 0:14
  */
+@Slf4j
 public class BioDispatcher extends AbstractDispatcher {
     public BioDispatcher() {
         super();
@@ -34,7 +37,8 @@ public class BioDispatcher extends AbstractDispatcher {
         Request request = null;
         Response response = null;
         try {
-            BufferedInputStream bin = new BufferedInputStream(socket.getInputStream());
+            InputStream is=socket.getInputStream();
+            BufferedInputStream bin = new BufferedInputStream(is);
             byte[] buf = null;
             try {
                 buf = new byte[bin.available()];

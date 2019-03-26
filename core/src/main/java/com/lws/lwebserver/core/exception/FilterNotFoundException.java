@@ -1,4 +1,4 @@
-package com.lws.lwebserver.core.exception.handler;
+package com.lws.lwebserver.core.exception;
 
 import com.lws.lwebserver.core.exception.base.ServletException;
 import com.lws.lwebserver.core.enumeration.HttpStatus;

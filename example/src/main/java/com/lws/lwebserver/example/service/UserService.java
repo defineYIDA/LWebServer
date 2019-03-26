@@ -28,11 +28,6 @@ public class UserService {
     }
 
     public boolean login(String username, String password) {
-        try {
-            Thread.sleep(10000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         User user = users.get(username);
         if (password.equals(user.getPassword())) {
             online.put(username, "");

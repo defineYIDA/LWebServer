@@ -5,7 +5,7 @@ import com.lws.lwebserver.core.exception.ServerErrorException;
 import com.lws.lwebserver.core.exception.ServletNotFoundException;
 import com.lws.lwebserver.core.exception.base.ServletException;
 import com.lws.lwebserver.core.exception.handler.ExceptionHandler;
-import com.lws.lwebserver.core.exception.handler.FilterNotFoundException;
+import com.lws.lwebserver.core.exception.FilterNotFoundException;
 import com.lws.lwebserver.core.fliter.Filter;
 import com.lws.lwebserver.core.fliter.FilterChain;
 import com.lws.lwebserver.core.net.wrapper.SocketWrapperBase;
@@ -98,6 +98,7 @@ public abstract class AbstractRequestHandler implements FilterChain, Runnable {
             //Servlet在RequestHandler中执行
             servlet.service(request, response);
         } catch (ServletException e) {
+            log.error("ServletException "+e);
             exceptionHandler.handle(e, response, socketWrapper);
         } catch (Exception e) {
             //其他未知异常

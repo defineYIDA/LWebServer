@@ -114,13 +114,13 @@ public abstract class AbstractEndpoint<S extends SocketWrapperBase> {
     }
     public int getAcceptorThreadCount() { return acceptorThreadCount; }
 
-    protected final void startAcceptorThreads() {
+    protected final void startAcceptorThreads(String acceptorName ) {
         int count = getAcceptorThreadCount();
         acceptors = new Acceptor[count];
 
         for (int i = 0; i < count; i++) {
             acceptors[i] = createAcceptor();
-            String threadName =   "NIO-Acceptor-" + i;
+            String threadName =acceptorName + i;
             acceptors[i].setThreadName(threadName);
             Thread t = new Thread(acceptors[i], threadName);
             t.setPriority(Thread.NORM_PRIORITY);
