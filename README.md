@@ -1,4 +1,5 @@
 # 通过搭建简单HTTP服务器，学习服务器原理
+
 ## 学习内容：
 - IO模式
 - Socket
@@ -21,9 +22,11 @@
 
 ## 准备添加的功能：
 - NIO实现多路复用
-- 手写WebSocket服务器，实现HTTP长连接
 - Filter
 - Listener
 - SSL
 - limtlatch
 - APR
+## 模式
+- 当前NIO的实现参照的是Tomcat的源码
+
