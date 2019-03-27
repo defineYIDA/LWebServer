@@ -21,16 +21,11 @@ public class NioSocketWrapper extends SocketWrapperBase<SocketChannel> {
 
     private Poller poller = null;
     private volatile long waitBegin;//在建立连接/keep-alive时设置waitBegin
-    private volatile boolean isWorking;
-
-
-
 
 
     public NioSocketWrapper(SocketChannel socket, NioEndpoint endpoint, Poller poller) {
         super(socket, endpoint);
         this.poller=poller;
-        isWorking=false;
     }
 
     @Override
@@ -48,4 +43,5 @@ public class NioSocketWrapper extends SocketWrapperBase<SocketChannel> {
     public SocketChannel getSocket() {
         return super.getSocket();
     }
+
 }

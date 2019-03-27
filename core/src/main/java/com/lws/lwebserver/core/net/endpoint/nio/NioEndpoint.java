@@ -23,6 +23,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class NioEndpoint extends AbstractEndpoint<NioSocketWrapper> {
 
     private ServerSocketChannel serverSocket;//服务通道
+    /**
+     * 长连接超时时间
+     */
+    private int keepAliveTimeout = 6 * 1000 ;
 
     @Override
     public void start(int port) {
@@ -116,7 +120,9 @@ public class NioEndpoint extends AbstractEndpoint<NioSocketWrapper> {
     public void execute(NioSocketWrapper socketWrapper) {
         //TODO
     }
-
+    public int getKeepAliveTimeout() {
+        return keepAliveTimeout;
+    }
     @Override
     protected SocketProcessorBase<NioSocketWrapper> createSocketProcessor(SocketWrapperBase<NioSocketWrapper> socketWrapper) {
         return new SocketProcessor(socketWrapper);
