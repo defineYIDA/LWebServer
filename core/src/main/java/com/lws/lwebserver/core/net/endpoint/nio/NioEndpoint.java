@@ -1,6 +1,7 @@
 package com.lws.lwebserver.core.net.endpoint.nio;
 
 import com.lws.lwebserver.core.net.base.SocketProcessorBase;
+import com.lws.lwebserver.core.net.cleaner.IdleConnectionCleaner;
 import com.lws.lwebserver.core.net.dispatcher.AbstractDispatcher;
 import com.lws.lwebserver.core.net.dispatcher.nio.NioDispatcher;
 import com.lws.lwebserver.core.net.endpoint.AbstractEndpoint;
@@ -24,6 +25,10 @@ public class NioEndpoint extends AbstractEndpoint<NioSocketWrapper> {
 
     private ServerSocketChannel serverSocket;//服务通道
     /**
+     * 针对keep-alive连接，定时清理poller中的socket
+     */
+    private IdleConnectionCleaner cleaner;
+    /**
      * 长连接超时时间
      */
     private int keepAliveTimeout = 6 * 1000 ;
@@ -37,7 +42,7 @@ public class NioEndpoint extends AbstractEndpoint<NioSocketWrapper> {
             initServerSocket(port);
             initPoller();
             startAcceptorThreads("NIO-Acceptor");
-            //TODO 初始化acceptor，dispatcher,计时任务
+            initIdleSocketCleaner();//定时清理
         }catch (Exception e){
             e.printStackTrace();
             log.info("初始化服务器失败");
@@ -72,7 +77,13 @@ public class NioEndpoint extends AbstractEndpoint<NioSocketWrapper> {
     protected void initDispatcher() {
         dispatcher=new NioDispatcher();
     }
-
+    /**
+     * 初始化IdleSocketCleaner
+     */
+    private void initIdleSocketCleaner() {
+        cleaner = new IdleConnectionCleaner(nioPollers);
+        cleaner.start();
+    }
     /**
      *处理获得客户机连接
      * 设置阻塞类型；
