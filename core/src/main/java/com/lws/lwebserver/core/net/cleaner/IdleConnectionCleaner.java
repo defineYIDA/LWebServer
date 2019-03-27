@@ -35,9 +35,7 @@ public class IdleConnectionCleaner implements Runnable {
     @Override
     public void run() {
         for (Poller nioPoller : nioPollers) {
-            log.info("Cleaner 检测{} 所持有的Socket中...", nioPoller.getPollerName());
             nioPoller.cleanTimeoutSockets();
         }
-        log.info("检测结束...");
     }
 }
