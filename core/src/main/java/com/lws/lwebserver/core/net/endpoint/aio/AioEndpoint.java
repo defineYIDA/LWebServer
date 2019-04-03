@@ -22,11 +22,13 @@ import java.util.concurrent.*;
 @Slf4j
 public class AioEndpoint extends AbstractEndpoint<AioSocketWrapper> {
 
-    private AsynchronousServerSocketChannel serverSocket;//异步的主socket
-    private AioAcceptor aioAcceptor;
-    private ExecutorService pool;
+    private AsynchronousServerSocketChannel serverSocket;//异步的主socket通道
+    //private AioAcceptor aioAcceptor;
+    private ThreadPoolExecutor pool;
     @Override
     public void start(int port) {
+        running=true;//run endpoint
+        paused=false;
         try {
             initDispatcher();
             initServerSocket(port);
@@ -57,7 +59,7 @@ public class AioEndpoint extends AbstractEndpoint<AioSocketWrapper> {
                 // 指定监听本机的PORT端口
                 .bind(new InetSocketAddress(port));
         // 使用CompletionHandler接受来自客户端的连接请求
-        aioAcceptor = new AioAcceptor();
+        //aioAcceptor = new AioAcceptor();
         // 开始接收客户端连接
         accept();
     }
@@ -84,22 +86,84 @@ public class AioEndpoint extends AbstractEndpoint<AioSocketWrapper> {
      * 接收一个客户端连接
      */
     public void accept() {
-        serverSocket.accept(null, aioAcceptor);
-    }
-    /**
-     * 执行读已就绪的客户端连接的请求
-     * @param client
-     */
-    public void execute(AsynchronousSocketChannel client) {
-
-        dispatcher.doDispatch(new AioSocketWrapper(client,this));
+        /**
+         * 调用accept并且注册回调，这里方式有两种：
+         * 1）挂起的	• Future<AsynchronousSocketChannel> accept();
+         *2）注册回调的	• <A> void accept(Aattachment,CompletionHandler<AsynchronousSocketChannel,?superA>handler);
+         * 并且两种方法都会产生一定的错误率，相对来说挂起的方式错误率低
+         */
+        //serverSocket.accept(null, aioAcceptor);
+        startAcceptorThreads("AIO-Acceptor");
     }
     //-----------------------------------------------------acceptor start
     @Override
     protected Acceptor createAcceptor() {
-        return null;
+        return new Acceptor();
     }
 
+    protected class Acceptor extends AbstractEndpoint.Acceptor{
+        @Override
+        public void run() {
+            log.info("NIO Acceptor 开始监听");
+            while (running){
+                //endpoint阻塞
+                while (paused && running) {
+                    state = AcceptorState.PAUSED;
+                    try {
+                        Thread.sleep(50);
+                    } catch (InterruptedException e) {
+                    }
+                }
+                if(!running){
+                    break;
+                }
+                state=AcceptorState.RUNNING;
+                //TODO 待添加最大连接数的判断 LimitLatch
+                AsynchronousSocketChannel  clientSocket =null;
+                try {
+                    //调用阻塞
+                    clientSocket=serverSocket.accept().get();
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+                if(null==clientSocket){
+                    continue;
+                }
+                if(running&&!paused){
+                    if(!setSocketOptions(clientSocket)){
+                        closeSocket(clientSocket);
+                    }
+                }else {
+                    closeSocket(clientSocket);
+                }
+
+            }
+        }
+
+    }
+    private boolean setSocketOptions(AsynchronousSocketChannel socket) {
+        return processSocket(new AioSocketWrapper(socket,this));
+    }
+    private void closeSocket(AsynchronousSocketChannel socket) {
+        try {
+            socket.close();
+        } catch (IOException ioe) {
+            if (log.isDebugEnabled()) {
+                log.debug("endpoint.err.close", ioe);
+            }
+        }
+    }
+    /*    *//**
+     * 执行读已就绪的客户端连接的请求
+     * @param client
+     *//*
+    public void execute(AsynchronousSocketChannel client) {
+
+        dispatcher.doDispatch(new AioSocketWrapper(client,this));
+    }*/
+/*    *//**
+     * 回调的方式，注销掉，尝试挂起的方式
+     *//*
     protected class AioAcceptor implements CompletionHandler<AsynchronousSocketChannel, Void> {
         @Override
         public void completed(AsynchronousSocketChannel client, Void attachment) {
@@ -112,6 +176,6 @@ public class AioEndpoint extends AbstractEndpoint<AioSocketWrapper> {
             log.info("accept failed...");
             exc.printStackTrace();
         }
-    }
+    }*/
     //-----------------------------------------------------acceptor end
 }
