@@ -63,6 +63,11 @@ public class Poller implements Runnable {
         close = true;//停止轮询
         selector.wakeup();
     }
+
+    public String getPollerName() {
+        return pollerName;
+    }
+
     /**
      * 向selector中添加socket，后台线程检查poller中的触发事件，
      * 并将socket交给合适的进程进行处理。
@@ -241,6 +246,8 @@ public class Poller implements Runnable {
         }
         return ka;
     }
+
+
     //-----------------------------------------------------PollerEvent start
     /**
      *Cacheable object for poller events to avoid GC
@@ -286,4 +293,34 @@ public class Poller implements Runnable {
         }
     }
     //-----------------------------------------------------PollerEvent end
+
+    /**
+     * 清理长连接的socket
+     */
+    public void cleanTimeoutSockets() {
+        for (Iterator<Map.Entry<SocketChannel, NioSocketWrapper>> it = sockets.entrySet().iterator(); it.hasNext(); ) {
+            NioSocketWrapper wrapper = it.next().getValue();
+            log.info("缓存中的socket:{}", wrapper);
+            if (!wrapper.getSocket().isConnected()) {
+                log.info("该socket已被关闭");
+                it.remove();
+                continue;
+            }
+            if (wrapper.isWorking()) {
+                log.info("该socket正在工作中，不予关闭");
+                continue;
+            }
+            if (System.currentTimeMillis() - wrapper.getWaitBegin() > endpoint.getKeepAliveTimeout()) {
+                // 反注册
+                log.info("{} keepAlive已过期", wrapper.getSocket());
+                try {
+                    wrapper.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                it.remove();
+            }
+        }
+    }
+
 }

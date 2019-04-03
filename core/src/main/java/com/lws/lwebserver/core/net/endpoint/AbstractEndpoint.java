@@ -165,6 +165,7 @@ public abstract class AbstractEndpoint<S extends SocketWrapperBase> {
             }
             //TODO SocketProcessorBase
             //SocketProcessorBase<S> sc=createSocketProcessor(socketWrapper);
+            socketWrapper.setWorking(true);//设置当前socket为工作状态
             //调度
             dispatcher.doDispatch(socketWrapper);
         }catch (RejectedExecutionException ree){

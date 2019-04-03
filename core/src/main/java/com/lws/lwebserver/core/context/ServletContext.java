@@ -82,7 +82,7 @@ public class ServletContext {
      */
     private AntPathMatcher matcher;//TODO
 
-    private IdleSessionCleaner idleSessionCleaner;//TODO
+    private IdleSessionCleaner idleSessionCleaner;//定时清理Session
 
 
     public ServletContext() throws IllegalAccessException, ClassNotFoundException, InstantiationException {
@@ -163,7 +163,7 @@ public class ServletContext {
                 matchingPatterns.add(pattern);
             }
         }
-
+        //flatMap将一对多转化为一对一
         Set<String> filterAliases = matchingPatterns.stream().flatMap(pattern -> this.filterMapping.get(pattern).stream()).collect(Collectors.toSet());
         List<Filter> result = new ArrayList<>();
         for (String alias : filterAliases) {
@@ -222,8 +222,10 @@ public class ServletContext {
         this.servletContextListeners = new ArrayList<>();
         this.httpSessionListeners = new ArrayList<>();
         this.servletRequestListeners = new ArrayList<>();
+
         parseConfig();//解析web.xml
-        ServletContextEvent servletContextEvent = new ServletContextEvent(this);//TODO
+        //Listener
+        ServletContextEvent servletContextEvent = new ServletContextEvent(this);
         for (ServletContextListener listener : servletContextListeners) {
             listener.contextInitialized(servletContextEvent);
         }
@@ -243,6 +245,7 @@ public class ServletContext {
                 filterHolder.getFilter().destroy();
             }
         });
+        //Listener
         ServletContextEvent servletContextEvent = new ServletContextEvent(this);
         for (ServletContextListener listener : servletContextListeners) {
             listener.contextDestroyed(servletContextEvent);
@@ -266,10 +269,10 @@ public class ServletContext {
             String value = servletEle.element("servlet-class").getText();
             this.servlets.put(key, new ServletHolder(value));
         }
-
+        //解析Servlet-mapping'
         List<Element> servletMapping = root.elements("servlet-mapping");
         for (Element mapping : servletMapping) {
-            List<Element> urlPatterns = mapping.elements("url-pattern");
+            List<Element> urlPatterns = mapping.elements("url-pattern");//一个servlet可以对应多个url
             String value = mapping.element("servlet-name").getText();
             for (Element urlPattern : urlPatterns) {
                 this.servletMapping.put(urlPattern.getText(), value);
@@ -283,18 +286,22 @@ public class ServletContext {
             String value = filterEle.element("filter-class").getText();
             this.filters.put(key, new FilterHolder(value));
         }
-
+        //解析 filter-mapping
         List<Element> filterMapping = root.elements("filter-mapping");
         for (Element mapping : filterMapping) {
-            List<Element> urlPatterns = mapping.elements("url-pattern");
+            List<Element> urlPatterns = mapping.elements("url-pattern");//一个filter可以对应多个url，一个url也可以对应不同的filter
             String value = mapping.element("filter-name").getText();
             for (Element urlPattern : urlPatterns) {
+                /**
+                 * 判断该url是否已经存在过，如果存在，即一个url对应多个filter的情况，
+                 * 例如：/**
+                 */
                 List<String> values = this.filterMapping.get(urlPattern.getText());
                 if (values == null) {
                     values = new ArrayList<>();
-                    this.filterMapping.put(urlPattern.getText(), values);
                 }
                 values.add(value);
+                this.filterMapping.put(urlPattern.getText(), values);
             }
         }
 
@@ -333,6 +340,7 @@ public class ServletContext {
         HttpSession session = new HttpSession(UUIDUtil.uuid());
         sessions.put(session.getId(), session);
         response.addCookie(new Cookie("JSESSIONID", session.getId()));
+
         HttpSessionEvent httpSessionEvent = new HttpSessionEvent(session);
         for (HttpSessionListener listener : httpSessionListeners) {
             listener.sessionCreated(httpSessionEvent);

@@ -22,7 +22,7 @@ public class ExceptionHandler {
     public void handle(ServletException e, Response response, SocketWrapperBase socketWrapper) {
         try {
             if (e instanceof RequestInvalidException) {
-                log.info("请求无法读取，丢弃");
+                //log.info("请求无法读取，丢弃");
                 socketWrapper.close();
             } else {
                 log.info("抛出异常:{}", e.getClass().getName());
