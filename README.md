@@ -7,7 +7,7 @@
 - 框架源码(Tomcat,Spring,Netty等)
 
 ## 实现的简化功能：
-
+- BIO NIO AIO
 - HTTP Protocol
 - Servlet
 1) ServletContext
@@ -18,15 +18,14 @@
 
 ## 使用技术
 
-基于Java BIO、多线程、Socket网络编程、XML解析、log4j/slf4j日志
+基于Java BIO/NIO/AIO(NIO2)、多线程、Socket网络编程、XML解析、log4j/slf4j日志
 
 ## 准备添加的功能：
-- NIO实现多路复用
-- Filter
-- Listener
+
 - SSL
 - limtlatch
 - APR
 ## 模式
 - 当前NIO的实现参照的是Tomcat的源码
+
 
