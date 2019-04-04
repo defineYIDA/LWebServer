@@ -57,7 +57,12 @@ public class AioEndpoint extends AbstractEndpoint<AioSocketWrapper> {
         // 以指定线程池来创建一个AsynchronousServerSocketChannel
         serverSocket = AsynchronousServerSocketChannel.open(channelGroup)
                 // 指定监听本机的PORT端口
-                .bind(new InetSocketAddress(port));
+                .bind(new InetSocketAddress(port),200);
+        // Initialize thread count defaults for acceptor, poller
+        if (acceptorThreadCount != 1) {
+            // NIO2 does not allow any form of IO concurrency
+            acceptorThreadCount = 1;
+        }
         // 使用CompletionHandler接受来自客户端的连接请求
         //aioAcceptor = new AioAcceptor();
         // 开始接收客户端连接
