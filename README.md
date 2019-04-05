@@ -29,9 +29,9 @@
 
 ## 解决问题
 
-- AIO的高错误率，backlog参数的调节
+- AIO的高错误率，backlog参数的调节[issue](https://github.com/defineYIDA/LWebServer/issues/4)
 - NIO下对Socket实现长连接(keep-alive)，并设置心跳定时清理
-- 
+- 分析多余的socket连接[issue](https://github.com/defineYIDA/LWebServer/issues/3)
 
 ## 准备添加的功能：
 
