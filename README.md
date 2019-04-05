@@ -10,13 +10,19 @@
 
 ## 实现的简化功能：
 - BIO NIO AIO
+> NIO使用的是IO多路复用的Select机制
+
 - HTTP Protocol
+> Keep-Alive
+
 - Servlet
 > ServletContext
   Dispatcher
   
 - Request&Response
+
 - Forward&Redirect
+
 - session&cookie
 
 ## 使用技术
