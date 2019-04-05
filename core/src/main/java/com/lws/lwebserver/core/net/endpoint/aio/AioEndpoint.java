@@ -12,7 +12,6 @@ import java.net.InetSocketAddress;
 import java.nio.channels.AsynchronousChannelGroup;
 import java.nio.channels.AsynchronousServerSocketChannel;
 import java.nio.channels.AsynchronousSocketChannel;
-import java.nio.channels.CompletionHandler;
 import java.util.concurrent.*;
 
 /**
@@ -57,7 +56,7 @@ public class AioEndpoint extends AbstractEndpoint<AioSocketWrapper> {
         // 以指定线程池来创建一个AsynchronousServerSocketChannel
         serverSocket = AsynchronousServerSocketChannel.open(channelGroup)
                 // 指定监听本机的PORT端口
-                .bind(new InetSocketAddress(port),200);
+                .bind(new InetSocketAddress(port),getAcceptCount());
         // Initialize thread count defaults for acceptor, poller
         if (acceptorThreadCount != 1) {
             // NIO2 does not allow any form of IO concurrency
@@ -80,6 +79,7 @@ public class AioEndpoint extends AbstractEndpoint<AioSocketWrapper> {
 
     @Override
     public void close() {
+        running=false;
         dispatcher.shutdown();
         try {
             serverSocket.close();

@@ -104,7 +104,12 @@ public abstract class AbstractEndpoint<S extends SocketWrapperBase> {
         executor = new ThreadPoolExecutor(getMinSpareThreads(), getMaxThreads(), 60, TimeUnit.SECONDS,taskqueue, tf);
         taskqueue.setParent( (ThreadPoolExecutor) executor);
     }*/
-
+    /**
+     * backlog 队列大小，定义是已连接但未进行accept处理的(accept队列)SOCKET队列大小
+     */
+    private int acceptCount = 100;
+    public void setAcceptCount(int acceptCount) { if (acceptCount > 0) this.acceptCount = acceptCount; }
+    public int getAcceptCount() { return acceptCount; }
     /**
      * Acceptor thread count.
      */

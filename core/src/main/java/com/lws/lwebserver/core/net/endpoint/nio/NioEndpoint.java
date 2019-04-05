@@ -70,7 +70,7 @@ public class NioEndpoint extends AbstractEndpoint<NioSocketWrapper> {
 
     private void initServerSocket(int port) throws IOException {
         serverSocket = ServerSocketChannel.open();//开启服务通道
-        serverSocket.bind(new InetSocketAddress(port));//绑定端口号，使用到InetSocketAddress对象
+        serverSocket.bind(new InetSocketAddress(port),getAcceptCount());//绑定端口号，使用到InetSocketAddress对象
         serverSocket.configureBlocking(true);//阻塞型io
     }
     @Override
