@@ -49,3 +49,5 @@
 [关于专栏-------WebServer二三事](https://blog.csdn.net/define_LIN/article/details/89040929)
 
 [WebServer二三事(一)Socket编程说起](https://blog.csdn.net/define_LIN/article/details/89304687)
+
+[WebServer二三事(二)五种网络I/O模式](https://blog.csdn.net/define_LIN/article/details/89705770)
