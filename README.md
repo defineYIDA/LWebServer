@@ -51,3 +51,5 @@
 [WebServer二三事(一)Socket编程说起](https://blog.csdn.net/define_LIN/article/details/89304687)
 
 [WebServer二三事(二)五种网络I/O模式](https://blog.csdn.net/define_LIN/article/details/89705770)
+
+[同步/异步，阻塞/非阻塞你真的理解了吗？](https://blog.csdn.net/define_LIN/article/details/89724421)
