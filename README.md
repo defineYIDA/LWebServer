@@ -1,24 +1,19 @@
-# 仿Tomcat简化版Servlet容器
-通过搭建简单HTTP服务器，学习服务器原理和计算机网络知识
+# LWebServer
+`简化版Tomcat` ，可以配置BIO,NIO,AIO三种模式，实现Cookie和Session的会话追踪，请求响应的封装，Servlet的调度，长连接等Web服务器基本功能。
+
+基于Java BIO/NIO/AIO(NIO2)包、多线程、Socket网络编程、XML解析、log4j/slf4j日志
+
+NIO的实现参照的是Tomcat的源码
 
 ## 学习内容：
-- IO模式
-- Socket
-- TCP/IP
-- 框架源码(Tomcat,Spring,Netty等)
-- 高级网络编程
-- 线程模型
+`IO模式` / `Socket` / `TCP/IP` / `框架源码(Tomcat,Spring,Netty等)` / `高级网络编程` / `线程模型`
 
-## 实现的简化功能：
-- BIO NIO AIO
-> NIO使用的是IO多路复用的Select机制
+## 实现功能：
+- BIO NIO AIO `NIO使用的是IO多路复用的Select机制`
 
-- HTTP Protocol
-> Keep-Alive
+- HTTP Protocol `Keep-Alive`
 
-- Servlet
-> ServletContext
-  Dispatcher
+- Servlet `ServletContext` `Dispatcher`
   
 - Request&Response
 
@@ -26,13 +21,7 @@
 
 - session&cookie
 
-## 使用技术
 
-基于Java BIO/NIO/AIO(NIO2)、多线程（select）、Socket网络编程、XML解析、log4j/slf4j日志
-
-## 模式
-
-- 当前NIO的实现参照的是Tomcat的源码
 
 ## 解决问题
 
