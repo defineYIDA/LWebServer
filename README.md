@@ -11,6 +11,8 @@ NIO的实现参照的是Tomcat的源码
 ## 实现功能：
 - BIO NIO AIO `NIO使用的是IO多路复用的Select机制`
 
+- Reactor 模式
+
 - HTTP Protocol `Keep-Alive`
 
 - Servlet `ServletContext` `Dispatcher`
