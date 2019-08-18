@@ -2,7 +2,6 @@ package com.lws.lwebserver.core.net.endpoint.nio;
 
 import com.lws.lwebserver.core.net.base.SocketProcessorBase;
 import com.lws.lwebserver.core.net.cleaner.IdleConnectionCleaner;
-import com.lws.lwebserver.core.net.dispatcher.AbstractDispatcher;
 import com.lws.lwebserver.core.net.dispatcher.nio.NioDispatcher;
 import com.lws.lwebserver.core.net.endpoint.AbstractEndpoint;
 import com.lws.lwebserver.core.net.wrapper.SocketWrapperBase;
@@ -31,19 +30,19 @@ public class NioEndpoint extends AbstractEndpoint<NioSocketWrapper> {
     /**
      * 长连接超时时间
      */
-    private int keepAliveTimeout = 6 * 1000 ;
+    private int keepAliveTimeout = 6 * 1000;
 
     @Override
     public void start(int port) {
         try {
-            running=true;//run endpoint
-            paused=false;
+            running = true;//run endpoint
+            paused = false;
             initDispatcher();
             initServerSocket(port);
             initPoller();
             startAcceptorThreads("NIO-Acceptor");
             initIdleSocketCleaner();//定时清理
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             log.info("初始化服务器失败");
             close();
@@ -52,7 +51,7 @@ public class NioEndpoint extends AbstractEndpoint<NioSocketWrapper> {
 
     @Override
     public void close() {
-        running=false;
+        running = false;
         for (Poller nioPoller : nioPollers) {
             try {
                 nioPoller.destroy();
@@ -70,13 +69,15 @@ public class NioEndpoint extends AbstractEndpoint<NioSocketWrapper> {
 
     private void initServerSocket(int port) throws IOException {
         serverSocket = ServerSocketChannel.open();//开启服务通道
-        serverSocket.bind(new InetSocketAddress(port),getAcceptCount());//绑定端口号，使用到InetSocketAddress对象
+        serverSocket.bind(new InetSocketAddress(port), getAcceptCount());//绑定端口号，使用到InetSocketAddress对象
         serverSocket.configureBlocking(true);//阻塞型io
     }
+
     @Override
     protected void initDispatcher() {
-        dispatcher=new NioDispatcher();
+        dispatcher = new NioDispatcher();
     }
+
     /**
      * 初始化IdleSocketCleaner
      */
@@ -84,10 +85,12 @@ public class NioEndpoint extends AbstractEndpoint<NioSocketWrapper> {
         cleaner = new IdleConnectionCleaner(nioPollers);
         cleaner.start();
     }
+
     /**
-     *处理获得客户机连接
+     * 处理获得客户机连接
      * 设置阻塞类型；
      * 注册到poller
+     *
      * @param socket
      * @return
      */
@@ -96,21 +99,23 @@ public class NioEndpoint extends AbstractEndpoint<NioSocketWrapper> {
             //注意监听serversocketchannel为阻塞，客户机连接为非阻塞
             socket.configureBlocking(false);
             //TODO SecureNioChannel SSL 对buffer进行加密
-            getPoller().register(socket,true);//注册到pollerevent
-        }catch (IOException e){
+            getPoller().register(socket, true);//注册到pollerevent
+        } catch (IOException e) {
             e.printStackTrace();
             return false;
         }
         return true;
     }
+
     /**
      * 关闭通道
+     *
      * @param socket
      */
     private void closeSocket(SocketChannel socket) {
         try {
             socket.socket().close();
-        } catch (IOException ioe)  {
+        } catch (IOException ioe) {
             if (log.isDebugEnabled()) {
                 log.error("endpoint.err.close");
             }
@@ -125,15 +130,16 @@ public class NioEndpoint extends AbstractEndpoint<NioSocketWrapper> {
     }
 
     /**
-     *
      * @param socketWrapper
      */
     public void execute(NioSocketWrapper socketWrapper) {
         //TODO
     }
+
     public int getKeepAliveTimeout() {
         return keepAliveTimeout;
     }
+
     @Override
     protected SocketProcessorBase<NioSocketWrapper> createSocketProcessor(SocketWrapperBase<NioSocketWrapper> socketWrapper) {
         return new SocketProcessor(socketWrapper);
@@ -143,12 +149,13 @@ public class NioEndpoint extends AbstractEndpoint<NioSocketWrapper> {
     /**
      * The socket poller.
      */
-    private int pollerThreadCount = Math.min(2,Runtime.getRuntime().availableProcessors());//轮询池的数量，一般为cpu个数
+    private int pollerThreadCount = Math.min(2, Runtime.getRuntime().availableProcessors());//轮询池的数量，一般为cpu个数
     private Poller[] nioPollers = null;
     private AtomicInteger pollerRotater = new AtomicInteger(0);
 
     /**
      * 返回可用selector
+     *
      * @return The next poller in sequence
      */
     public Poller getPoller() {
@@ -158,14 +165,15 @@ public class NioEndpoint extends AbstractEndpoint<NioSocketWrapper> {
 
     /**
      * Init poller
+     *
      * @throws IOException
      */
     private void initPoller() throws IOException {
         nioPollers = new Poller[pollerThreadCount];
         for (int i = 0; i < pollerThreadCount; i++) {
-            String pollName="NIOPoller-"+i;
-            nioPollers[i] = new Poller(this,pollName);
-            Thread pollerThread = new Thread(nioPollers[i],  "LWS-ClientPoller-"+i);
+            String pollName = "NIOPoller-" + i;
+            nioPollers[i] = new Poller(this, pollName);
+            Thread pollerThread = new Thread(nioPollers[i], "LWS-ClientPoller-" + i);
             pollerThread.setPriority(Thread.NORM_PRIORITY);//设置优先级
             pollerThread.setDaemon(true);
             pollerThread.start();
@@ -178,14 +186,15 @@ public class NioEndpoint extends AbstractEndpoint<NioSocketWrapper> {
     protected Acceptor createAcceptor() {
         return new Acceptor();
     }
+
     /**
      * 后台线程监听客户机的TCP连接
      */
-    protected class Acceptor extends AbstractEndpoint.Acceptor{
+    protected class Acceptor extends AbstractEndpoint.Acceptor {
         @Override
         public void run() {
             log.info("NIO Acceptor 开始监听");
-            while (running){
+            while (running) {
                 //endpoint阻塞
                 while (paused && running) {
                     state = AcceptorState.PAUSED;
@@ -194,27 +203,27 @@ public class NioEndpoint extends AbstractEndpoint<NioSocketWrapper> {
                     } catch (InterruptedException e) {
                     }
                 }
-                if(!running){
+                if (!running) {
                     break;
                 }
-                state=AcceptorState.RUNNING;
+                state = AcceptorState.RUNNING;
                 //TODO 待添加最大连接数的判断 LimitLatch
-                SocketChannel  clientSocket =null;
+                SocketChannel clientSocket = null;
                 try {
                     //调用阻塞
-                    clientSocket=serverSocket.accept();
-                }catch (IOException e){
+                    clientSocket = serverSocket.accept();
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
-                if(null==clientSocket){
+                if (null == clientSocket) {
                     continue;
                 }
-                if(running&&!paused){
-                    if(!setSocketOptions(clientSocket)){
+                if (running && !paused) {
+                    if (!setSocketOptions(clientSocket)) {
                         closeSocket(clientSocket);
                     }
-                }else {
-                   closeSocket(clientSocket);
+                } else {
+                    closeSocket(clientSocket);
                 }
 
             }

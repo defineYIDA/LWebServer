@@ -173,6 +173,15 @@ public class Request {
         return url;
     }
 
+    /**
+     * GET /index?size=1 HTTP/1.1
+     * Host: www.enjoytoday.cn
+     * Connection: keep-alive
+     * Upgrade-Insecure-Requests: 1
+     * User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.84 Safari/537.36
+     * Accept:text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,
+     * @param lines
+     */
     private void parseHeaders(String[] lines) {
         log.info("解析请求头");
         String firstLine = lines[0];
@@ -192,6 +201,7 @@ public class Request {
             parseParams(urlSlices[1]);
         }
         log.debug("params:{}", this.params);
+
 
         //解析请求头
         String header;

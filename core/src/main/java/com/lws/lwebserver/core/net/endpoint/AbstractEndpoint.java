@@ -14,7 +14,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
- *
  * @author zl
  */
 @Slf4j
@@ -36,8 +35,10 @@ public abstract class AbstractEndpoint<S extends SocketWrapperBase> {
      * 接收者
      */
     protected Acceptor[] acceptors;
+
     /**
      * 启动服务器
+     *
      * @param port
      */
     public abstract void start(int port);
@@ -50,17 +51,21 @@ public abstract class AbstractEndpoint<S extends SocketWrapperBase> {
     /**
      * Hook to allow Endpoints to provide a specific Acceptor implementation.
      * 创建监听
+     *
      * @return acceptor
      */
     protected abstract Acceptor createAcceptor();
 
     /**
      * 创建调度者
+     *
      * @return
      */
     protected abstract void initDispatcher();
+
     /**
      * 根据传入的bio、nio、aio获取相应的Endpoint实例
+     *
      * @param connector
      * @return
      */
@@ -108,24 +113,35 @@ public abstract class AbstractEndpoint<S extends SocketWrapperBase> {
      * backlog 队列大小，定义是已连接但未进行accept处理的(accept队列)SOCKET队列大小
      */
     private int acceptCount = 100;
-    public void setAcceptCount(int acceptCount) { if (acceptCount > 0) this.acceptCount = acceptCount; }
-    public int getAcceptCount() { return acceptCount; }
+
+    public void setAcceptCount(int acceptCount) {
+        if (acceptCount > 0) this.acceptCount = acceptCount;
+    }
+
+    public int getAcceptCount() {
+        return acceptCount;
+    }
+
     /**
      * Acceptor thread count.
      */
     protected int acceptorThreadCount = 1;
+
     public void setAcceptorThreadCount(int acceptorThreadCount) {
         this.acceptorThreadCount = acceptorThreadCount;
     }
-    public int getAcceptorThreadCount() { return acceptorThreadCount; }
 
-    protected final void startAcceptorThreads(String acceptorName ) {
+    public int getAcceptorThreadCount() {
+        return acceptorThreadCount;
+    }
+
+    protected final void startAcceptorThreads(String acceptorName) {
         int count = getAcceptorThreadCount();
         acceptors = new Acceptor[count];
 
         for (int i = 0; i < count; i++) {
             acceptors[i] = createAcceptor();
-            String threadName =acceptorName + i;
+            String threadName = acceptorName + i;
             acceptors[i].setThreadName(threadName);
             Thread t = new Thread(acceptors[i], threadName);
             t.setPriority(Thread.NORM_PRIORITY);
@@ -133,14 +149,16 @@ public abstract class AbstractEndpoint<S extends SocketWrapperBase> {
             t.start();
         }
     }
+
     /**
-     *acceptor基类
+     * acceptor基类
      */
     public abstract static class Acceptor implements Runnable {
         //监听状态
         public enum AcceptorState {
             NEW, RUNNING, PAUSED, ENDED
         }
+
         protected volatile AcceptorState state = AcceptorState.NEW;
 
         public final AcceptorState getState() {
@@ -159,13 +177,12 @@ public abstract class AbstractEndpoint<S extends SocketWrapperBase> {
     }
 
     /**
-     *
      * @param socketWrapper
      * @return
      */
-    public boolean processSocket(S socketWrapper){
+    public boolean processSocket(S socketWrapper) {
         try {
-            if(socketWrapper==null){
+            if (socketWrapper == null) {
                 return false;
             }
             //TODO SocketProcessorBase
@@ -173,17 +190,17 @@ public abstract class AbstractEndpoint<S extends SocketWrapperBase> {
             socketWrapper.setWorking(true);//设置当前socket为工作状态
             //调度
             dispatcher.doDispatch(socketWrapper);
-        }catch (RejectedExecutionException ree){
-            log.warn("endpoint.executor.fail",ree);
+        } catch (RejectedExecutionException ree) {
+            log.warn("endpoint.executor.fail", ree);
             return false;
-        }catch (Throwable t){
-            log.error("endpoint.process.fail",t);
+        } catch (Throwable t) {
+            log.error("endpoint.process.fail", t);
             return false;
         }
         return true;
     }
 
     protected abstract SocketProcessorBase<S> createSocketProcessor(
-            SocketWrapperBase<S> socketWrapper );
+            SocketWrapperBase<S> socketWrapper);
 
 }

@@ -28,6 +28,7 @@ public class NioDispatcher extends AbstractDispatcher {
      * 1、读取数据
      * 2、构造request，response
      * 3、将业务放入到线程池中处理
+     *
      * @param socketWrapper
      */
     @Override
@@ -43,7 +44,7 @@ public class NioDispatcher extends AbstractDispatcher {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             //将通道中的数据读到缓存中，通道中的数据就是clint发送给服务端的数据
             //int readLength=nioSocketWrapper.getSocketChannel().read(buffer);
-            while (nioSocketWrapper.getSocket().read(buffer)> 0) {
+            while (nioSocketWrapper.getSocket().read(buffer) > 0) {
                 /**
                  * NIO中最复杂的操作就是buffer的控制
                  * buffer中有一个游标，游标信息在操作后不会归零，如果直接访问buffer会有数据不一致的可能

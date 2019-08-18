@@ -43,13 +43,15 @@ public class Poller implements Runnable {
 
     private long selectorTimeout = 1000;
 
-    public Selector getSelector() { return selector;}
+    public Selector getSelector() {
+        return selector;
+    }
 
-    public Poller(NioEndpoint nioEndpoint,String pollerName) throws IOException {
+    public Poller(NioEndpoint nioEndpoint, String pollerName) throws IOException {
         this.selector = Selector.open();//开启多路复用器
-        this.endpoint=nioEndpoint;
-        this.pollerName=pollerName;
-        sockets=new ConcurrentHashMap<>();
+        this.endpoint = nioEndpoint;
+        this.pollerName = pollerName;
+        sockets = new ConcurrentHashMap<>();
     }
 
     /**
@@ -71,25 +73,24 @@ public class Poller implements Runnable {
     /**
      * 向selector中添加socket，后台线程检查poller中的触发事件，
      * 并将socket交给合适的进程进行处理。
-     *
      */
     @Override
     public void run() {
         //Loop until destroy()
-        while (true){
-            boolean hasEvents=false;
+        while (true) {
+            boolean hasEvents = false;
             try {
-                if(!close){// 未关闭
+                if (!close) {// 未关闭
                     events();
-                    if(wakeupCounter.getAndSet(-1)>0){
+                    if (wakeupCounter.getAndSet(-1) > 0) {
                         //代表此时events存在未注册的值，立即返回(执行一个non blocking select)
                         keyCount = selector.selectNow();
-                    }else {
-                        keyCount=selector.select(selectorTimeout);//设置阻塞超时时间
+                    } else {
+                        keyCount = selector.select(selectorTimeout);//设置阻塞超时时间
                     }
                     wakeupCounter.set(0);
                 }
-                if (close){//关闭
+                if (close) {//关闭
                     try {
                         selector.close();
                     } catch (IOException ioe) {
@@ -97,24 +98,24 @@ public class Poller implements Runnable {
                     }
                     break;
                 }
-            }catch (Throwable e){
-                log.error("",e);
+            } catch (Throwable e) {
+                log.error("", e);
                 continue;
             }
             Iterator<SelectionKey> iterator =
                     keyCount > 0 ? selector.selectedKeys().iterator() : null;
-            while (iterator != null && iterator.hasNext()){
+            while (iterator != null && iterator.hasNext()) {
                 SelectionKey sk = iterator.next();
                 /**
                  * 获得可操作对象
                  */
-                NioSocketWrapper attachment = (NioSocketWrapper)sk.attachment();
-                if(!sk.isReadable()){
+                NioSocketWrapper attachment = (NioSocketWrapper) sk.attachment();
+                if (!sk.isReadable()) {
                     iterator.remove();
                 }
-                if(null==attachment){
+                if (null == attachment) {
                     iterator.remove();
-                }else {
+                } else {
                     iterator.remove();
 
                     /**粗略概况一下接下来的流程(Tomcat源码的流程，但是接下来我采用的是简化的流程)
@@ -140,43 +141,45 @@ public class Poller implements Runnable {
 
     /**
      * 返回可处理的key
+     *
      * @param sk
      * @param attachment
      */
-    protected void processKey(SelectionKey sk, NioSocketWrapper attachment){
+    protected void processKey(SelectionKey sk, NioSocketWrapper attachment) {
         try {
-            if(close){
+            if (close) {
                 cancelledKey(sk);
-            }else if(sk.isValid() && attachment != null ){
-                boolean closeSocket=false;
-                if(!endpoint.processSocket(attachment)){
-                    closeSocket=true;
+            } else if (sk.isValid() && attachment != null) {
+                boolean closeSocket = false;
+                if (!endpoint.processSocket(attachment)) {
+                    closeSocket = true;
                 }
-                if(closeSocket){
+                if (closeSocket) {
                     cancelledKey(sk);
                 }
-            }else {
+            } else {
                 cancelledKey(sk);
             }
-        }catch (CancelledKeyException c){
+        } catch (CancelledKeyException c) {
             cancelledKey(sk);
-        }catch (Throwable t){
-            log.error("",t);
+        } catch (Throwable t) {
+            log.error("", t);
         }
     }
 
     /**
      * 注册到PollerEvent
+     *
      * @param socketChannel
      * @param isNew
      */
     public void register(SocketChannel socketChannel, boolean isNew) {
         NioSocketWrapper socketWrapper;
-        if(isNew){//is new socket
-            socketWrapper=new NioSocketWrapper(socketChannel,endpoint,this);//包装socketchannel
-            sockets.put(socketChannel,socketWrapper);//缓存住，用于管理socket
-        }else {//keep-alive 长连接
-            socketWrapper=sockets.get(socketChannel);
+        if (isNew) {//is new socket
+            socketWrapper = new NioSocketWrapper(socketChannel, endpoint, this);//包装socketchannel
+            sockets.put(socketChannel, socketWrapper);//缓存住，用于管理socket
+        } else {//keep-alive 长连接
+            socketWrapper = sockets.get(socketChannel);
             socketWrapper.setWorking(false);
         }
         socketWrapper.setWaitBegin(System.currentTimeMillis());
@@ -190,23 +193,24 @@ public class Poller implements Runnable {
          * 只要让其它线程在第一个线程调用select()方法的那个对象上调用Selector.wakeup()方法即可。
          * 阻塞在select()方法上的线程会立马返回,然后注册evens中的PollerEvent
          */
-        if ( wakeupCounter.incrementAndGet() == 0 ) selector.wakeup();
+        if (wakeupCounter.incrementAndGet() == 0) selector.wakeup();
     }
 
     /**
      * 将队列中的注册事件全部执行(注册到selector)，并且清空队列
+     *
      * @return
      */
-    private boolean events(){
-        boolean result=false;
+    private boolean events() {
+        boolean result = false;
         PollerEvent pe = null;
         /**
          * pop() 从此列表所表示的堆栈处弹出一个元素；
          * poll() 获取并移除此列表的头（第一个元素）；
          * 将队列中的注册事件全部执行，并且清空队列
          */
-        for (int i = 0, size = events.size(); i < size && (pe = events.poll()) != null; i++ ) {
-            result=true;
+        for (int i = 0, size = events.size(); i < size && (pe = events.poll()) != null; i++) {
+            result = true;
             pe.run();
             pe.reset();
             //TODO 这里tomcat里做了个缓存操作 eventCache
@@ -215,61 +219,65 @@ public class Poller implements Runnable {
     }
 
     public NioSocketWrapper cancelledKey(SelectionKey key) {
-        NioSocketWrapper ka=null;
+        NioSocketWrapper ka = null;
         try {
-            if(null==key){
+            if (null == key) {
                 return null;
             }
-            ka=(NioSocketWrapper) key.attach(null);
+            ka = (NioSocketWrapper) key.attach(null);
 /*            if(null!=ka){
 
             }*/
-            if(key.isValid()){
+            if (key.isValid()) {
                 key.cancel();
             }
-            if(null!=ka){
+            if (null != ka) {
                 try {
                     ka.getSocket().close();
-                }catch (Exception e){
-                    log.info("endpoint.debug.socketCloseFail"+e);
+                } catch (Exception e) {
+                    log.info("endpoint.debug.socketCloseFail" + e);
                 }
             }
-            if(key.channel().isOpen()){
+            if (key.channel().isOpen()) {
                 try {
                     key.channel().close();
-                }catch (Exception e){
-                    log.info("endpoint.debug.channelCloseFail"+e);
+                } catch (Exception e) {
+                    log.info("endpoint.debug.channelCloseFail" + e);
                 }
             }
-        }catch (Throwable e){
-            if (log.isDebugEnabled()) log.error("",e);
+        } catch (Throwable e) {
+            if (log.isDebugEnabled()) log.error("", e);
         }
         return ka;
     }
 
 
     //-----------------------------------------------------PollerEvent start
+
     /**
-     *Cacheable object for poller events to avoid GC
+     * Cacheable object for poller events to avoid GC
      * 缓存轮询事件，避免GC
      * 并将事件在合适时机注册到Selector中
      * 注意这里涉及两种注册：
-     *        1)accept()到客户机的socketchannel后注册到PollerEvent队列(events)；
-     *        2)然后轮询线程(Poller),在每一次轮询之前，调用events(),将所有PollerEvent，注册到Selector.
+     * 1)accept()到客户机的socketchannel后注册到PollerEvent队列(events)；
+     * 2)然后轮询线程(Poller),在每一次轮询之前，调用events(),将所有PollerEvent，注册到Selector.
      */
-    private static class PollerEvent implements Runnable{
+    private static class PollerEvent implements Runnable {
 
         private NioSocketWrapper socketWrapper;
 
         public PollerEvent(NioSocketWrapper socketWrapper) {
             reset(socketWrapper);
         }
+
         public void reset(NioSocketWrapper w) {
             socketWrapper = w;
         }
+
         public void reset() {
             reset(null);
         }
+
         @Override
         public void run() {
             log.info("将SocketChannel的读事件注册到Poller的selector中");

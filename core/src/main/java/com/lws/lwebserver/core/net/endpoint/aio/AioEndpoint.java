@@ -128,6 +128,8 @@ public class AioEndpoint extends AbstractEndpoint<AioSocketWrapper> {
                 try {
                     //调用阻塞
                     clientSocket=serverSocket.accept().get();
+                    //Future<AsynchronousSocketChannel> future=serverSocket.accept();
+
                 }catch (Exception e){
                     e.printStackTrace();
                 }
